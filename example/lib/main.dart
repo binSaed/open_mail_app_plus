@@ -1,63 +1,131 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:open_mail_app_plus/open_mail_app_plus.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MaterialApp(home: MyApp()));
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-  final _openMailAppPlusPlugin = OpenMailAppPlus();
-
-  @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion =
-          await _openMailAppPlusPlugin.getPlatformVersion() ?? 'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
-  }
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Open Mail App Example"),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            ElevatedButton(
+              child: Text("Open Mail App"),
+              onPressed: () async {
+                // Android: Will open mail app or show native picker.
+                // iOS: Will open mail app if single mail app found.
+                var result = await OpenMailAppPlus.openMailApp(
+                  nativePickerTitle: 'Select email app to open',
+                );
+
+                // If no mail apps found, show error
+                if (!result.didOpen && !result.canOpen) {
+                  showNoMailAppsDialog(context);
+
+                  // iOS: if multiple mail apps found, show dialog to select.
+                  // There is no native intent/default app system in iOS so
+                  // you have to do it yourself.
+                } else if (!result.didOpen && result.canOpen) {
+                  showDialog(
+                    context: context,
+                    builder: (_) {
+                      return MailAppPickerDialog(
+                        mailApps: result.options,
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+            ElevatedButton(
+              child: Text('Open mail app, with email already composed'),
+              onPressed: () async {
+                EmailContent email = EmailContent(
+                  to: [
+                    'user@domain.com',
+                  ],
+                  subject: 'Hello!',
+                  body: 'How are you doing?',
+                  cc: ['user2@domain.com', 'user3@domain.com'],
+                  bcc: ['boss@domain.com'],
+                );
+
+                OpenMailAppResult result =
+                    await OpenMailAppPlus.composeNewEmailInMailApp(
+                        nativePickerTitle: 'Select email app to compose',
+                        emailContent: email);
+                if (!result.didOpen && !result.canOpen) {
+                  showNoMailAppsDialog(context);
+                } else if (!result.didOpen && result.canOpen) {
+                  showDialog(
+                    context: context,
+                    builder: (_) => MailAppPickerDialog(
+                      mailApps: result.options,
+                      emailContent: email,
+                    ),
+                  );
+                }
+              },
+            ),
+            ElevatedButton(
+              child: Text("Get Mail Apps"),
+              onPressed: () async {
+                var apps = await OpenMailAppPlus.getMailApps();
+
+                if (apps.isEmpty) {
+                  showNoMailAppsDialog(context);
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return MailAppPickerDialog(
+                        mailApps: apps,
+                        emailContent: EmailContent(
+                          to: [
+                            'user@domain.com',
+                          ],
+                          subject: 'Hello!',
+                          body: 'How are you doing?',
+                          cc: ['user2@domain.com', 'user3@domain.com'],
+                          bcc: ['boss@domain.com'],
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  void showNoMailAppsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Open Mail App"),
+          content: Text("No mail apps installed"),
+          actions: <Widget>[
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            )
+          ],
+        );
+      },
     );
   }
 }
