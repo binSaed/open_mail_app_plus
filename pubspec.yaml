@@ -1,7 +1,7 @@
 name: open_mail_app_plus
-description: "A new Flutter project."
+description: This library provides the ability to query the device for installed email apps and open those apps
 version: 0.0.1
-homepage:
+homepage: https://github.com/binSaed/open_mail_app_plus
 
 environment:
   sdk: ^3.6.2
