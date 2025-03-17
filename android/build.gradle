@@ -1,4 +1,4 @@
-group = "app.istoria.open_mail_app_plus"
+group = "de.simonstevens.open_mail_app_plus"
 version = "1.0-SNAPSHOT"
 
 buildscript {
@@ -25,7 +25,7 @@ apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 
 android {
-    namespace = "app.istoria.open_mail_app_plus"
+    namespace = "de.simonstevens.open_mail_app_plus"
 
     compileSdk = 35
 
