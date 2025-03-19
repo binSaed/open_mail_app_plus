@@ -1,4 +1,4 @@
-# Open Mail App Flutter ![Flutter 2.10.0](https://img.shields.io/badge/Flutter-2.10.0-blue)
+# Open Mail App Flutter ![Flutter 3.29.0](https://img.shields.io/badge/Flutter-3.29.0-blue)
 [![pub package](https://img.shields.io/pub/v/open_mail_app_plus.svg?label=open_mail_app_plus&color=blue)](https://pub.dev/packages/open_mail_app_plus)
 
 A boring but accurate name.
